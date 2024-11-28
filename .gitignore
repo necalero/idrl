@@ -1,0 +1,10 @@
+venv/
+venvvideos/
+
+flaskr/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+worker/projectomiso-3e6a4576df92.json
+flaskr/projectomiso-3e6a4576df92.json
