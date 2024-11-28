@@ -1,0 +1,315 @@
+{
+	"info": {
+		"_postman_id": "26666269-3c15-4b04-a747-daca9c29a881",
+		"name": "Proyecto Desarrollo de Software en la Nube",
+		"description": "Esta guia incluye la documentación de los métodos implementados para cada endpoint de la API para el proyecto de IDRL",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "34151248",
+		"_collection_link": "https://desarrollo-en-la-nube-2144.postman.co/workspace/Desarrollo-en-la-nube-Workspace~fdbd37e9-45d2-4a76-a73b-2a21851e1a4d/collection/34151248-26666269-3c15-4b04-a747-daca9c29a881?action=share&source=collection_link&creator=34151248"
+	},
+	"item": [
+		{
+			"name": "Crear nuevo usuario",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Successful POST request\", function () {",
+							"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n\t\"username\": \"Usuario4\",\n\t\"password\": \"Password1\",\n\t\"password2\": \"Password1\",\n\t\"email\": \"usuario@gmail.com\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/auth/signup",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"auth",
+						"signup"
+					]
+				},
+				"description": "**Endpoint para Crear Usuarios**\n\nEsta es una solicitud POST en donde se envían datos a una API a través del cuerpo de la solicitud, para la creación de usuarios.\n\n**Datos Requeridos**:\n\n- `username`: Nombre de usuario único.\n    \n- `password`: Contraseña del usuario.\n    \n- `password2`: Confirmación de la contraseña para validar que coincide con el campo `password`.\n    \n- `email`: Correo electrónico del usuario.\n    \n\n**Validaciones**:\n\n- Se verifica que todos los campos requeridos estén presentes.\n    \n- Se valida que `password` y `password2` coincidan. Si no lo hacen, se devuelve un mensaje de error.\n    \n\n**Respuesta**:\n\n- **Éxito (201)**: Se devuelve el objeto del usuario creado.\n    \n- **Error (400)**: Mensajes de error indicando que faltan campos o que las contraseñas no coinciden."
+			},
+			"response": []
+		},
+		{
+			"name": "Iniciar sesion",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();\r",
+							"\r",
+							"// Guardar el token en una variable global\r",
+							"pm.globals.set(\"auth_token\", jsonData.token);\r",
+							"\r",
+							"// También puedes imprimir el token en la consola para verificar\r",
+							"console.log(\"Token saved: \" + jsonData.token);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\t\"username\":\"Usuario4\",\r\n\t\"password\":\"Password1\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{base_url}}/api/auth/login",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"auth",
+						"login"
+					],
+					"query": [
+						{
+							"key": "",
+							"value": null,
+							"disabled": true
+						}
+					]
+				},
+				"description": "**Endpoint Login**  \nEste endpoint permite a un usuario autenticarse en el sistema.\n\n**Datos Requeridos**:\n\n- `username`: Nombre de usuario.\n    \n- `password`: Contraseña del usuario.\n    \n\n**Proceso**:\n\n- Se busca al usuario por su nombre de usuario y contraseña.\n    \n- Si las credenciales son correctas, se genera un token JWT que incluye el ID del usuario y tiene una expiración de 1 hora.\n    \n\n**Respuesta**:\n\n- **Éxito (200)**: Se devuelve un objeto que contiene el usuario y el token JWT.\n    \n- **Error (404)**: Mensaje indicando que el usuario no se encontró o que las credenciales son inválidas."
+			},
+			"response": []
+		},
+		{
+			"name": "Borrar task",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/tasks/{{id_task}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"tasks",
+						"{{id_task}}"
+					]
+				},
+				"description": "**Endpoint para Borrar task**\n\nEsta es una solicitud DELETE en donde se envía la solicitud, para la eliminación de una tarea.\n\n**Datos Requeridos**:\n\n- id_task: Identificador de la task a eliminar.\n    \n- Bearer token: token de acceso requerido para acceder a la petición (correr primero la prueba de inicio de sesion para obtener el token)\n    \n\n**Validaciones**:\n\n- Se verifica la autenticidad del token.\n    \n- Se valida que la tarea buscada corresponda a una tarea existente\n    \n\n**Respuesta**:\n\n- **Éxito (201)**: Se devuelve un mensaje de confirmación.\n    \n- **Error (400)**: Mensajes de error indicando que el token o el identificador no es válido"
+			},
+			"response": []
+		},
+		{
+			"name": "Listar videos",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/api/videos",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"videos"
+					]
+				},
+				"description": "**Endpoint para Listar videos**\n\nEsta es una solicitud GET en donde se envía la solicitud, para listar todos los videos presentes en la base de datos.\n\n**Datos Requeridos**:\n\n- No tiene parámetros\n    \n\n**Validaciones**:\n\n- No requiere el uso de un token de autenticación por lo que cualquier usuario puede acceder a la petición\n    \n\n**Respuesta**:\n\n- **Éxito (200)**: Se devuelve el listado de los videos presentes en la base de datos."
+			},
+			"response": []
+		},
+		{
+			"name": "Agregar video",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "",
+							"type": "file",
+							"src": "postman-cloud:///1ef8f3a0-3a42-4960-a6f4-71d168daea32"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{base_url}}/api/tasks",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"tasks"
+					]
+				},
+				"description": "El presente métoodo se utiliza para agregar un vídeo a la aplicación la cual lo edita de la siguiente forma:\n\n- Lo recorta a un tamaño máximo de 20 segundos\n    \n- Lo almacena localmente en la carpeta \"videos\"\n    \n- Lo ajusta a un aspecto 16:9\n    \n- Incluye el logo al inicio y al final del vídeo\n    \n\n(correr primero la prueba de inicio de sesion para obtener el token)"
+			},
+			"response": []
+		},
+		{
+			"name": "Obtener tarea",
+			"request": {
+				"auth": {
+					"type": "bearer"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/tasks/{{id_task}}",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"tasks",
+						"{{id_task}}"
+					]
+				},
+				"description": "Este servicio permite al usuario autenticado obtener los detalles de una tarea específica utilizando su \\`ID\\`.\n\nEl servicio también valida si la tarea ha sido procesada y, si es así, proporciona un enlace al video procesado.\n\n#### Parámetros de URL:\n\n- **id** (requerido): El \\`ID\\` de la tarea que se desea obtener. Debe ser un número entero válido.\n    \n- (correr primero la prueba de inicio de sesion para obtener el token)\n    \n\n#### Respuesta:\n\n- **Código 200**: Devuelve los detalles de la tarea solicitada.\n    \n- **Código 404**: Si la tarea no es encontrada.\n    \n- **Código 401**: Si el token es inválido o no se proporciona."
+			},
+			"response": []
+		},
+		{
+			"name": "Obtener tareas",
+			"request": {
+				"auth": {
+					"type": "bearer"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{auth_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/tasks",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"tasks"
+					]
+				},
+				"description": "Este servicio permite obtener todas las tareas asociadas al usuario autenticado.\n\nEs posible aplicar filtros para limitar el número de tareas obtenidas y ordenar los resultados.\n\n#### Parámetros de consulta (query params):\n\n- **max** (opcional): El número máximo de tareas a devolver. Debe ser un entero.\n    \n- **order** (opcional): Ordenar los resultados, donde \\`0\\` es ascendente (por defecto) y \\`1\\` es descendente.\n    \n- (correr primero la prueba de inicio de sesion para obtener el token)\n    \n\n#### Respuesta:\n\n- **Código 200**: Devuelve una lista de tareas.\n    \n- **Código 401**: Si el token es inválido o no se proporciona."
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "id",
+			"value": "1"
+		},
+		{
+			"key": "base_url",
+			"value": "http://localhost:5000/",
+			"type": "string"
+		},
+		{
+			"key": "id_task",
+			"value": "3",
+			"type": "string"
+		}
+	]
+}
