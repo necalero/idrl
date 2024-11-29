@@ -1,3 +1,4 @@
+#worker/app.py
 from flask import Flask, request, jsonify
 from flask_migrate import Migrate
 from celery import Celery
@@ -5,16 +6,28 @@ from moviepy.editor import VideoFileClip, ImageClip, concatenate_videoclips
 from celery.result import AsyncResult
 import os
 from google.cloud import storage
+from google.cloud import pubsub_v1
 from modelos import db, Video, VideoSchema, User, UserSchema, State, Task, TaskSchema
 
 video_schema = VideoSchema()
 user_schema = UserSchema()
 task_schema = TaskSchema()
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "projectomiso-3e6a4576df92.json"
+
+publisher = pubsub_v1.PublisherClient()
+subscriber = pubsub_v1.SubscriberClient()
+
+PROJECT_ID = "hardy-scarab-278919"
+TOPIC_NAME = "video-tasks"
+SUBSCRIPTION_NAME = "video-tasks-sub"
+
+topic_path = publisher.topic_path(PROJECT_ID, TOPIC_NAME)
+subscription_path = subscriber.subscription_path(PROJECT_ID, SUBSCRIPTION_NAME)
+
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "gcp_credentials.json"
 print("GOOGLE_APPLICATION_CREDENTIALS:", os.getenv("GOOGLE_APPLICATION_CREDENTIALS"))
 app = Flask(__name__)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:postgres@34.123.151.140/postgres'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://<USER>:<PASSWORD>@/<DB_NAME>?host=/cloudsql/<INSTANCE_CONNECTION_NAME>'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024
 app.config['JWT_TOKEN_LOCATION'] = ['headers', 'cookies']
@@ -114,8 +127,14 @@ def add_task():
     data = request.get_json()
     video_url = data['video']
     task_id = data['id']
-    task = edicion_video.apply_async(args=[video_url,task_id], link=post_edicion.s())
-    return jsonify({'task_id': task.id}), 202
+    
+    message = {
+        "video_url": video_url,
+        "task_id": task_id
+    }
+
+    future = publisher.publish(topic_path, data=json.dumps(message).encode("utf-8"))
+    return jsonify({"message_id": future.result()}), 202
 
 @app.route('/tasks/status/<task_id>', methods=['GET'])
 def get_task_status(task_id):
@@ -127,5 +146,21 @@ def get_task_status(task_id):
         'result': task_result.result      # Resultado si ha terminado
     })
 
+def callback(message):
+    try:
+        data = json.loads(message.data.decode("utf-8"))
+        video_url = data["video_url"]
+        task_id = data["task_id"]
+        edicion_video(video_url, task_id)  # Llama a la función Celery directamente
+        message.ack()
+    except Exception as e:
+        print(f"Error procesando mensaje: {e}")
+        message.nack()
+
+def start_subscriber():
+    subscriber.subscribe(subscription_path, callback=callback)
+    print(f"Listening for messages on {subscription_path}...")
+
 if __name__ == '__main__':
+    start_subscriber()
     app.run(host='0.0.0.0', port=5001)

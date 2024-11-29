@@ -9,6 +9,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 ENV FLASK_APP=app.py
 ENV FLASK_RUN_HOST=0.0.0.0
 
-EXPOSE 5000
+# Exponer el puerto en el que Flask o Gunicorn correrá
+EXPOSE 8080
 
-CMD ["flask", "run"]
+# Comando para correr la aplicación
+# Usamos Gunicorn en lugar del servidor de desarrollo de Flask para producción
+CMD ["gunicorn", "--bind", "0.0.0.0:8080", "flaskr.app:app", "--workers", "3"]

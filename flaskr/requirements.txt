@@ -14,7 +14,9 @@ Flask-JWT-Extended==4.6.0
 Flask-Migrate==4.0.7
 Flask-RESTful==0.3.10
 Flask-SQLAlchemy==3.1.1
+google-cloud-pubsub==2.17.0
 google_cloud_storage==2.18.2
+gunicorn
 greenlet==3.1.1
 idna==3.10
 imageio==2.36.0

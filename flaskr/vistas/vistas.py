@@ -1,3 +1,4 @@
+#flaskr/vistas/vistas.py
 import jwt  # Importa la librería JWT
 import datetime  # Para manejar la expiración del token
 from flask_restful import Resource
@@ -8,7 +9,7 @@ import os
 from moviepy.editor import VideoFileClip, ImageClip, concatenate_videoclips
 from google.cloud import storage
 
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "projectomiso-3e6a4576df92.json"
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "gcp_credentials.json"
 print("GOOGLE_APPLICATION_CREDENTIALS:", os.getenv("GOOGLE_APPLICATION_CREDENTIALS"))
 
 video_schema = VideoSchema()
